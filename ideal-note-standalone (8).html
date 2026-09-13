@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDEAL Note — Dermatology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --shell: #F7F5F1;
+    --ink: #1C1B1A;
+    --ink-soft: #6B6663;
+    --ink-faint: #9C9691;
+    --red: #A6222B;
+    --red-deep: #841A22;
+    --red-tint: #FBEAEA;
+    --red-tint-2: #F5DCDD;
+    --line: #E9E4DD;
+    --line-soft: #F1EDE6;
+    --amber: #A6672A;
+    --amber-tint: #FBF1E6;
+    --shadow-sm: 0 1px 2px rgba(28,27,26,0.05), 0 1px 6px rgba(28,27,26,0.04);
+    --shadow-md: 0 4px 16px rgba(28,27,26,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--shell); color: var(--ink); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* ===== App bar ===== */
+  .idn-appbar { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .idn-appbar-inner { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 22px; }
+  .idn-wordmark-sm { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; white-space: nowrap; }
+  .idn-wordmark-sm .w-ideal { color: var(--red); }
+  .idn-wordmark-sm .w-note { color: var(--ink); }
+
+  .idn-nav { display: flex; gap: 4px; flex: 1; }
+  .idn-navtab {
+    background: none; border: none; padding: 8px 16px; border-radius: 999px;
+    font-size: 13.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; font-family: inherit;
+    transition: background 0.12s, color 0.12s;
+  }
+  .idn-navtab:hover { background: var(--line-soft); color: var(--ink); }
+  .idn-navtab.active { background: var(--red); color: #fff; }
+
+  .idn-settings-btn {
+    background: none; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px;
+    font-size: 12.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .idn-settings-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ===== Layout ===== */
+  #idn-root { padding: 28px 20px 70px; }
+  .idn-wrap { max-width: 1120px; margin: 0 auto; }
+  .idn-view { display: none; }
+  .idn-view.active { display: block; animation: idn-fadein 0.18s ease; }
+  @keyframes idn-fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .idn-view-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 21px; margin: 4px 0 4px; }
+  .idn-view-sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 20px; }
+
+  .idn-mode-banner { display: none; background: var(--red-tint); border: 1px solid #EFC9CB; color: var(--red-deep); font-size: 12.5px; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; }
+
+  /* ===== Cards ===== */
+  .idn-card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+  .idn-card-accent { border-top: 3px solid var(--red); }
+  .idn-card-title { font-size: 13.5px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.01em; }
+
+  .idn-bar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .idn-bar-grid { grid-template-columns: 1fr; } }
+
+  .idn-field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .idn-field input, .idn-field select {
+    width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px;
+    font-size: 14px; font-family: inherit; color: var(--ink); background: var(--shell); transition: border-color 0.12s, background 0.12s;
+  }
+  .idn-field input:focus, .idn-field select:focus { outline: none; border-color: var(--red); background: #fff; box-shadow: 0 0 0 3px var(--red-tint); }
+  .idn-privacy-note { font-size: 11.5px; color: var(--ink-faint); margin-top: 10px; grid-column: 1 / -1; line-height: 1.5; }
+
+  /* Settings modal (API key) */
+  .idn-apikeybar input { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px; font-size: 13px; font-family: "Courier New", monospace; color: var(--ink); background: var(--shell); }
+  .idn-apikeybar input:focus { outline: none; border-color: var(--red); background: #fff; }
+  .idn-apikey-hint { font-weight: 400; color: var(--ink-faint); }
+
+  /* Procedure rows */
+  .idn-proc-row { border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 10px; background: var(--shell); }
+  .idn-proc-row-grid { display: grid; grid-template-columns: 1.4fr 1.4fr 0.7fr 0.9fr auto; gap: 12px; align-items: end; }
+  @media (max-width: 800px) { .idn-proc-row-grid { grid-template-columns: 1fr 1fr; } }
+  .idn-proc-remove { background: transparent; border: none; color: var(--ink-faint); cursor: pointer; font-size: 20px; line-height: 1; padding: 8px; border-radius: 6px; }
+  .idn-proc-remove:hover { color: var(--red); background: var(--red-tint); }
+  .idn-site-row { display: flex; gap: 6px; }
+  .idn-site-row input { flex: 1; }
+  .idn-mapbtn { white-space: nowrap; padding: 9px 12px; font-size: 12px; }
+  .idn-malig-row { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); }
+
+  .idn-addproc { margin-top: 4px; }
+
+  .idn-btn { background: var(--red); color: #fff; border: none; border-radius: 7px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.12s, transform 0.05s; }
+  .idn-btn:hover { background: var(--red-deep); }
+  .idn-btn:active { transform: scale(0.98); }
+  .idn-btn:disabled { background: #DFC3C4; cursor: default; }
+  .idn-btn-ghost { background: transparent; color: var(--red); border: 1px solid var(--line); }
+  .idn-btn-ghost:hover { background: var(--red-tint); border-color: var(--red-tint-2); }
+  .idn-btn-sm { padding: 7px 13px; font-size: 12.5px; border-radius: 6px; }
+
+  .idn-btn-mic { background: #fff; color: var(--red); border: 1px solid var(--red); display: inline-flex; align-items: center; gap: 7px; border-radius: 7px; }
+  .idn-btn-mic:hover { background: var(--red-tint); }
+  .idn-btn-mic.is-recording { background: var(--red); color: #fff; }
+  .idn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); display: inline-block; }
+  .idn-btn-mic.is-recording .idn-dot { background: #fff; animation: idn-pulse 1s ease-in-out infinite; }
+  @keyframes idn-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .idn-detail-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .idn-detail-toggle button { background: #fff; color: var(--ink-soft); border: none; padding: 8px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .idn-detail-toggle button.active { background: var(--red); color: #fff; }
+  .idn-detail-toggle button:not(.active):hover { background: var(--shell); }
+
+  .idn-controls { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+  .idn-hint { font-size: 12px; color: var(--ink-faint); }
+  .idn-error { color: var(--red-deep); font-size: 13px; margin-top: 10px; }
+  .idn-timer { font-size: 12px; color: var(--ink-faint); font-family: "Courier New", monospace; }
+  .idn-spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: idn-spin 0.7s linear infinite; margin-right: 8px; vertical-align: -2px; }
+  @keyframes idn-spin { to { transform: rotate(360deg); } }
+
+  #idn-input { width: 100%; min-height: 190px; resize: vertical; border: 1px solid var(--line); border-radius: 7px; padding: 13px; font-family: "Courier New", Courier, monospace; font-size: 13.5px; line-height: 1.55; color: var(--ink); background: var(--shell); }
+  #idn-input:focus { outline: none; border-color: var(--red); background: #fff; box-shadow: 0 0 0 3px var(--red-tint); }
+
+  /* Output tabs */
+  .idn-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .idn-tab { background: none; border: none; padding: 9px 4px; margin-right: 18px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; border-bottom: 2px solid transparent; font-family: inherit; }
+  .idn-tab.active { color: var(--red); border-bottom-color: var(--red); }
+  .idn-tabpanel { display: none; }
+  .idn-tabpanel.active { display: block; }
+
+  .idn-empty { color: var(--ink-faint); font-size: 13.5px; font-style: italic; display: flex; align-items: center; justify-content: center; height: 220px; text-align: center; padding: 0 20px; }
+
+  .idn-draftflag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; color: var(--red-deep); background: var(--red-tint); padding: 3px 8px; border-radius: 5px; margin-bottom: 14px; }
+
+  .idn-proc-note { border: 1px solid var(--line-soft); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+  .idn-proc-note-header { font-size: 12.5px; color: var(--ink-soft); border-bottom: 1px solid var(--line-soft); padding-bottom: 9px; margin-bottom: 11px; }
+  .idn-proc-note-header strong { color: var(--ink); }
+
+  .idn-section { margin-bottom: 13px; }
+  .idn-section:last-child { margin-bottom: 0; }
+  .idn-section-tag { display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; background: var(--red-tint); color: var(--red); font-weight: 700; font-size: 11.5px; border-radius: 5px; margin-right: 8px; font-family: "Courier New", monospace; }
+  .idn-section-title { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .idn-section-text { margin: 6px 0 0 29px; color: var(--ink); white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; }
+
+  .idn-footrow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px; flex-wrap: wrap; }
+  .idn-outbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Billing tab */
+  .idn-billing-disclaimer { background: var(--amber-tint); border: 1px solid #EAD3AE; color: var(--amber); font-size: 12px; padding: 9px 12px; border-radius: 7px; margin-bottom: 14px; }
+  .idn-billing-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+  .idn-billing-row:last-child { border-bottom: none; }
+  .idn-billing-code { font-family: "Courier New", monospace; font-weight: 700; color: var(--red); white-space: nowrap; padding-left: 14px; }
+
+  /* Handout tab */
+  .idn-handout-controls { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .idn-handout-lang-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .idn-handout-lang-toggle button { background: #fff; border: none; padding: 7px 12px; font-size: 12px; font-weight: 600; color: var(--ink-soft); cursor: pointer; font-family: inherit; }
+  .idn-handout-lang-toggle button.active { background: var(--red); color: #fff; }
+  .idn-handout-block { border: 1px solid var(--line-soft); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+  .idn-handout-block h4 { margin: 0 0 7px; font-size: 13.5px; color: var(--red-deep); }
+  .idn-handout-block p { margin: 0; font-size: 13.5px; line-height: 1.65; white-space: pre-wrap; }
+
+  /* Modals (body map + settings) */
+  .idn-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(28,27,26,0.5); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
+  .idn-modal-backdrop.open { display: flex; }
+  .idn-modal { background: #fff; border-radius: 12px; padding: 22px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  .idn-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .idn-modal-head h3 { margin: 0; font-size: 17px; font-family: 'Poppins', sans-serif; font-weight: 700; }
+  .idn-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--ink-faint); line-height: 1; }
+  .idn-modal-close:hover { color: var(--red); }
+  .idn-view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; margin-bottom: 14px; }
+  .idn-view-toggle button { background: #fff; border: none; padding: 7px 14px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; font-family: inherit; }
+  .idn-view-toggle button.active { background: var(--red); color: #fff; }
+  .idn-zone { fill: var(--red-tint); stroke: var(--red); stroke-width: 0.6; opacity: 0.5; cursor: pointer; transition: opacity 0.1s; }
+  .idn-zone:hover { opacity: 0.95; }
+  .idn-bodymap-outline { fill: #F0ECE7; stroke: var(--ink-faint); stroke-width: 0.8; }
+  .idn-zone-label-hint { font-size: 12px; color: var(--ink-soft); text-align: center; margin-top: 10px; min-height: 16px; }
+
+  /* Pathology tracker */
+  .idn-tracker-row { display: grid; grid-template-columns: 1.5fr 1.2fr 1fr 1fr auto; gap: 10px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; }
+  @media (max-width: 700px) { .idn-tracker-row { grid-template-columns: 1fr 1fr; } }
+  .idn-tracker-row:last-child { border-bottom: none; }
+  .idn-tracker-overdue { color: var(--red-deep); font-weight: 600; }
+  .idn-tracker-empty { color: var(--ink-faint); font-size: 13px; font-style: italic; padding: 12px 0; }
+
+  /* History */
+  .idn-history-title { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .idn-history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 12.5px; color: var(--ink); }
+  .idn-history-item:hover { background: var(--red-tint); }
+  .idn-history-item span.idn-history-time { color: var(--ink-faint); font-size: 11px; }
+
+  .idn-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 800px) { .idn-grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="idn-appbar">
+  <div class="idn-appbar-inner">
+    <div class="idn-wordmark-sm"><span class="w-ideal">IDEAL</span> <span class="w-note">Note</span></div>
+    <nav class="idn-nav">
+      <button class="idn-navtab active" data-view="visit">Visit</button>
+      <button class="idn-navtab" data-view="note">Note</button>
+      <button class="idn-navtab" data-view="tracker">Tracker</button>
+    </nav>
+    <button class="idn-settings-btn" id="idn-settings-open">⚙ Settings</button>
+  </div>
+</div>
+
+<div id="idn-root">
+  <div class="idn-wrap">
+
+    <div class="idn-mode-banner" id="idn-mode-banner"></div>
+
+    <!-- ============ VISIT VIEW ============ -->
+    <div class="idn-view active" id="idn-view-visit">
+      <p class="idn-view-title">New visit</p>
+      <p class="idn-view-sub">Log the procedures performed, then dictate or type the visit notes.</p>
+
+      <div class="idn-card idn-card-accent">
+        <div class="idn-bar-grid">
+          <div class="idn-field"><label>Patient name</label><input type="text" id="idn-name" placeholder="Last, First"></div>
+          <div class="idn-field"><label>MRN</label><input type="text" id="idn-mrn" placeholder="000000"></div>
+          <div class="idn-field"><label>Date of visit</label><input type="text" id="idn-date" placeholder="MM/DD/YYYY"></div>
+          <div class="idn-privacy-note">Name and MRN are never sent to the AI. They're only saved to this browser's local storage if you add an entry to the Pathology Tracker — everything else here is not saved.</div>
+        </div>
+      </div>
+
+      <div class="idn-card">
+        <div class="idn-card-title"><span>Procedures this visit</span></div>
+        <div id="idn-proc-list"></div>
+        <button class="idn-btn idn-btn-ghost idn-btn-sm idn-addproc" id="idn-add-proc">+ Add another procedure</button>
+      </div>
+
+      <div class="idn-card">
+        <div class="idn-card-title">Rough visit notes (covers all procedures above)</div>
+        <textarea id="idn-input" placeholder="Type, paste, or use the mic to dictate the visit…"></textarea>
+        <div class="idn-controls">
+          <button class="idn-btn" id="idn-generate">Generate</button>
+          <button class="idn-btn-mic" id="idn-mic"><span class="idn-dot"></span><span id="idn-mic-label">Dictate</span></button>
+          <button class="idn-btn idn-btn-ghost" id="idn-clear">Clear</button>
+          <div class="idn-detail-toggle" id="idn-detail-toggle">
+            <button data-level="brief" class="active">Brief</button>
+            <button data-level="detailed">Detailed</button>
+          </div>
+          <span class="idn-timer" id="idn-timer"></span>
+        </div>
+        <div class="idn-hint" id="idn-mic-support" style="margin-top:8px;"></div>
+        <div class="idn-error" id="idn-error" style="display:none;"></div>
+
+        <div id="idn-history-wrap" style="display:none; margin-top:18px; border-top:1px solid var(--line); padding-top:14px;">
+          <div class="idn-history-title">Recent visits (this session)</div>
+          <div id="idn-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ NOTE VIEW ============ -->
+    <div class="idn-view" id="idn-view-note">
+      <p class="idn-view-title">Note</p>
+      <p class="idn-view-sub">Clinical note, patient handout, and billing suggestions from your last generation.</p>
+
+      <div class="idn-card">
+        <div class="idn-footrow">
+          <div class="idn-tabs" id="idn-tabs">
+            <button class="idn-tab active" data-tab="clinical">Clinical note</button>
+            <button class="idn-tab" data-tab="handout">Patient handout</button>
+            <button class="idn-tab" data-tab="billing">Billing codes</button>
+          </div>
+          <div class="idn-outbtns">
+            <button class="idn-btn idn-btn-ghost idn-btn-sm" id="idn-read" style="display:none;">Read aloud</button>
+            <button class="idn-btn idn-btn-ghost idn-btn-sm" id="idn-download" style="display:none;">Download</button>
+            <button class="idn-btn idn-btn-ghost idn-btn-sm" id="idn-copy" style="display:none;">Copy</button>
+          </div>
+        </div>
+
+        <div class="idn-tabpanel active" id="idn-tab-clinical"><div class="idn-empty">Your clinical note will appear here.</div></div>
+        <div class="idn-tabpanel" id="idn-tab-handout"><div class="idn-empty">Generate a note first to see the patient handout.</div></div>
+        <div class="idn-tabpanel" id="idn-tab-billing"><div class="idn-empty">Generate a note first to see billing suggestions.</div></div>
+      </div>
+    </div>
+
+    <!-- ============ TRACKER VIEW ============ -->
+    <div class="idn-view" id="idn-view-tracker">
+      <p class="idn-view-title">Pathology tracker</p>
+      <p class="idn-view-sub">Anything marked "path sent" during a visit shows up here until resulted.</p>
+
+      <div class="idn-card">
+        <div class="idn-card-title">
+          <span>Pending results</span>
+          <button class="idn-btn idn-btn-ghost idn-btn-sm" id="idn-tracker-clear">Clear all</button>
+        </div>
+        <div id="idn-tracker-list"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Body map modal -->
+<div class="idn-modal-backdrop" id="idn-modal-backdrop">
+  <div class="idn-modal">
+    <div class="idn-modal-head">
+      <h3>Pick a site</h3>
+      <button class="idn-modal-close" id="idn-modal-close">&times;</button>
+    </div>
+    <div class="idn-view-toggle" id="idn-bodymap-view-toggle">
+      <button data-view="front" class="active">Front</button>
+      <button data-view="back">Back</button>
+    </div>
+    <div id="idn-bodymap-svg-wrap"></div>
+    <div class="idn-zone-label-hint" id="idn-zone-hint">Click a region on the body</div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="idn-modal-backdrop" id="idn-settings-backdrop">
+  <div class="idn-modal">
+    <div class="idn-modal-head">
+      <h3>Settings</h3>
+      <button class="idn-modal-close" id="idn-settings-close">&times;</button>
+    </div>
+    <label for="idn-apikey" style="display:block; font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Anthropic API key <span class="idn-apikey-hint">(stored only in this browser)</span></label>
+    <div style="display:flex; gap:8px;">
+      <input type="password" id="idn-apikey" placeholder="sk-ant-...">
+      <button class="idn-btn idn-btn-ghost" id="idn-apikey-save" style="white-space:nowrap;">Save key</button>
+    </div>
+    <div class="idn-hint" id="idn-apikey-status" style="margin-top:8px;"></div>
+    <p class="idn-hint" style="margin-top:14px;">Get a key at <strong>console.anthropic.com</strong> → Settings → API Keys. Treat it like a password — usage bills to your account.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ============ STATE ============ */
+  let procIdCounter = 1;
+  let procedures = [{ id: procIdCounter, type: '', site: '', sizeCm: '', pathSent: '', malignant: false }];
+  let activeMapProcId = null;
+  let bodyMapView = 'front';
+  let detailLevel = 'brief';
+  let noteHistory = [];
+  let lastGeneratedProcedures = []; // holds {meta, note} after generation
+  let activeTab = 'clinical';
+  let handoutLang = 'en';
+  let usedFallback = false;
+
+  /* ============ DOM refs ============ */
+  const procListEl = document.getElementById('idn-proc-list');
+  const addProcBtn = document.getElementById('idn-add-proc');
+  const nameField = document.getElementById('idn-name');
+  const mrnField = document.getElementById('idn-mrn');
+  const dateField = document.getElementById('idn-date');
+  const input = document.getElementById('idn-input');
+  const generateBtn = document.getElementById('idn-generate');
+  const clearBtn = document.getElementById('idn-clear');
+  const micBtn = document.getElementById('idn-mic');
+  const micLabel = document.getElementById('idn-mic-label');
+  const micSupport = document.getElementById('idn-mic-support');
+  const errorBox = document.getElementById('idn-error');
+  const timerBox = document.getElementById('idn-timer');
+  const modeBanner = document.getElementById('idn-mode-banner');
+  const copyBtn = document.getElementById('idn-copy');
+  const readBtn = document.getElementById('idn-read');
+  const downloadBtn = document.getElementById('idn-download');
+  const tabClinical = document.getElementById('idn-tab-clinical');
+  const tabHandout = document.getElementById('idn-tab-handout');
+  const tabBilling = document.getElementById('idn-tab-billing');
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  /* ============ Procedure rows ============ */
+  const PROC_TYPES = ['Shave biopsy','Punch biopsy','Excisional biopsy','Excision (lesion removal)','Cryotherapy','Electrodesiccation and curettage (ED&C)','Mohs surgery','Skin tag removal','Other'];
+
+  function renderProcRows() {
+    procListEl.innerHTML = procedures.map((p, idx) => {
+      const typeOptions = ['<option value="">Select…</option>'].concat(
+        PROC_TYPES.map(t => '<option value="' + escapeHtml(t) + '"' + (p.type === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>')
+      ).join('');
+      const needsSizeAndMalig = p.type === 'Excision (lesion removal)' || p.type === 'Electrodesiccation and curettage (ED&C)' || p.type === 'Shave biopsy';
+      return '<div class="idn-proc-row" data-id="' + p.id + '">' +
+        '<div class="idn-proc-row-grid">' +
+          '<div class="idn-field"><label>Procedure ' + (idx + 1) + ' type</label><select class="idn-proc-type">' + typeOptions + '</select></div>' +
+          '<div class="idn-field"><label>Site / location</label><div class="idn-site-row"><input type="text" class="idn-proc-site" value="' + escapeHtml(p.site) + '" placeholder="e.g. left forearm"><button type="button" class="idn-btn idn-btn-ghost idn-mapbtn idn-open-map">Map</button></div></div>' +
+          '<div class="idn-field"><label>Size (cm)</label><input type="text" class="idn-proc-size" value="' + escapeHtml(p.sizeCm) + '" placeholder="e.g. 0.8"></div>' +
+          '<div class="idn-field"><label>Path sent?</label><select class="idn-proc-path"><option value=""' + (p.pathSent === '' ? ' selected' : '') + '>Select…</option><option value="Yes"' + (p.pathSent === 'Yes' ? ' selected' : '') + '>Yes</option><option value="No"' + (p.pathSent === 'No' ? ' selected' : '') + '>No</option></select></div>' +
+          (procedures.length > 1 ? '<button type="button" class="idn-proc-remove" title="Remove">&times;</button>' : '<span></span>') +
+        '</div>' +
+        (needsSizeAndMalig ? '<label class="idn-malig-row"><input type="checkbox" class="idn-proc-malig"' + (p.malignant ? ' checked' : '') + '> Suspected/confirmed malignant (affects billing suggestion)</label>' : '') +
+      '</div>';
+    }).join('');
+
+    procListEl.querySelectorAll('.idn-proc-row').forEach(row => {
+      const id = parseInt(row.dataset.id, 10);
+      const proc = procedures.find(p => p.id === id);
+      row.querySelector('.idn-proc-type').addEventListener('change', e => { proc.type = e.target.value; renderProcRows(); });
+      row.querySelector('.idn-proc-site').addEventListener('input', e => { proc.site = e.target.value; });
+      row.querySelector('.idn-proc-size').addEventListener('input', e => { proc.sizeCm = e.target.value; });
+      row.querySelector('.idn-proc-path').addEventListener('change', e => { proc.pathSent = e.target.value; });
+      const maligCb = row.querySelector('.idn-proc-malig');
+      if (maligCb) maligCb.addEventListener('change', e => { proc.malignant = e.target.checked; });
+      const removeBtn = row.querySelector('.idn-proc-remove');
+      if (removeBtn) removeBtn.addEventListener('click', () => { procedures = procedures.filter(p => p.id !== id); renderProcRows(); });
+      row.querySelector('.idn-open-map').addEventListener('click', () => openBodyMap(id));
+    });
+  }
+
+  addProcBtn.addEventListener('click', () => {
+    procIdCounter++;
+    procedures.push({ id: procIdCounter, type: '', site: '', sizeCm: '', pathSent: '', malignant: false });
+    renderProcRows();
+  });
+
+  renderProcRows();
+
+  /* ============ Body map ============ */
+  const modalBackdrop = document.getElementById('idn-modal-backdrop');
+  const modalClose = document.getElementById('idn-modal-close');
+  const viewToggle = document.getElementById('idn-bodymap-view-toggle');
+  const svgWrap = document.getElementById('idn-bodymap-svg-wrap');
+  const zoneHint = document.getElementById('idn-zone-hint');
+
+  const LIMB_ZONES = [
+    { x: 40, y: 65, w: 24, h: 42, label: 'Right upper arm' },
+    { x: 136, y: 65, w: 24, h: 42, label: 'Left upper arm' },
+    { x: 36, y: 108, w: 20, h: 40, label: 'Right forearm' },
+    { x: 144, y: 108, w: 20, h: 40, label: 'Left forearm' },
+    { x: 33, y: 149, w: 18, h: 18, label: 'Right hand' },
+    { x: 149, y: 149, w: 18, h: 18, label: 'Left hand' },
+    { x: 74, y: 135, w: 24, h: 55, label: 'Right thigh' },
+    { x: 102, y: 135, w: 24, h: 55, label: 'Left thigh' },
+    { x: 74, y: 192, w: 24, h: 50, label: 'Right lower leg' },
+    { x: 102, y: 192, w: 24, h: 50, label: 'Left lower leg' },
+    { x: 72, y: 244, w: 26, h: 16, label: 'Right foot' },
+    { x: 102, y: 244, w: 26, h: 16, label: 'Left foot' }
+  ];
+  const FRONT_TORSO_ZONES = [
+    { x: 85, y: 12, w: 30, h: 26, label: 'Face' },
+    { x: 88, y: 50, w: 24, h: 12, label: 'Neck' },
+    { x: 68, y: 64, w: 64, h: 34, label: 'Chest' },
+    { x: 68, y: 100, w: 64, h: 34, label: 'Abdomen' }
+  ];
+  const BACK_TORSO_ZONES = [
+    { x: 85, y: 10, w: 30, h: 28, label: 'Scalp' },
+    { x: 88, y: 50, w: 24, h: 12, label: 'Posterior neck' },
+    { x: 68, y: 64, w: 64, h: 32, label: 'Upper back' },
+    { x: 68, y: 98, w: 64, h: 26, label: 'Lower back' },
+    { x: 68, y: 126, w: 64, h: 18, label: 'Buttocks' }
+  ];
+
+  function bodyOutlineSVG() {
+    return '<circle class="idn-bodymap-outline" cx="100" cy="30" r="20"/>' +
+      '<rect class="idn-bodymap-outline" x="90" y="48" width="20" height="14"/>' +
+      '<rect class="idn-bodymap-outline" x="65" y="60" width="70" height="80" rx="8"/>' +
+      '<rect class="idn-bodymap-outline" x="38" y="63" width="26" height="44" rx="8"/>' +
+      '<rect class="idn-bodymap-outline" x="136" y="63" width="26" height="44" rx="8"/>' +
+      '<rect class="idn-bodymap-outline" x="34" y="106" width="22" height="42" rx="6"/>' +
+      '<rect class="idn-bodymap-outline" x="144" y="106" width="22" height="42" rx="6"/>' +
+      '<circle class="idn-bodymap-outline" cx="42" cy="158" r="10"/>' +
+      '<circle class="idn-bodymap-outline" cx="158" cy="158" r="10"/>' +
+      '<rect class="idn-bodymap-outline" x="72" y="134" width="26" height="58" rx="8"/>' +
+      '<rect class="idn-bodymap-outline" x="102" y="134" width="26" height="58" rx="8"/>' +
+      '<rect class="idn-bodymap-outline" x="72" y="190" width="26" height="53" rx="6"/>' +
+      '<rect class="idn-bodymap-outline" x="102" y="190" width="26" height="53" rx="6"/>' +
+      '<rect class="idn-bodymap-outline" x="70" y="244" width="28" height="16" rx="5"/>' +
+      '<rect class="idn-bodymap-outline" x="102" y="244" width="28" height="16" rx="5"/>';
+  }
+
+  function renderBodyMap() {
+    const torsoZones = bodyMapView === 'front' ? FRONT_TORSO_ZONES : BACK_TORSO_ZONES;
+    const allZones = torsoZones.concat(LIMB_ZONES);
+    const zonesSVG = allZones.map(z =>
+      '<rect class="idn-zone" data-label="' + escapeHtml(z.label) + '" x="' + z.x + '" y="' + z.y + '" width="' + z.w + '" height="' + z.h + '" rx="4"></rect>'
+    ).join('');
+    svgWrap.innerHTML = '<svg viewBox="0 0 200 270" style="width:100%; max-width:280px; display:block; margin:0 auto;">' + bodyOutlineSVG() + zonesSVG + '</svg>';
+    svgWrap.querySelectorAll('.idn-zone').forEach(z => {
+      z.addEventListener('mouseenter', () => { zoneHint.textContent = z.dataset.label; });
+      z.addEventListener('mouseleave', () => { zoneHint.textContent = 'Click a region on the body'; });
+      z.addEventListener('click', () => {
+        const proc = procedures.find(p => p.id === activeMapProcId);
+        if (proc) { proc.site = z.dataset.label; renderProcRows(); }
+        closeBodyMap();
+      });
+    });
+  }
+
+  function openBodyMap(procId) {
+    activeMapProcId = procId;
+    modalBackdrop.classList.add('open');
+    renderBodyMap();
+  }
+  function closeBodyMap() { modalBackdrop.classList.remove('open'); activeMapProcId = null; }
+
+  modalClose.addEventListener('click', closeBodyMap);
+  modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeBodyMap(); });
+  viewToggle.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-view]');
+    if (!btn) return;
+    bodyMapView = btn.dataset.view;
+    viewToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    renderBodyMap();
+  });
+
+  /* ============ Detail toggle ============ */
+  const detailToggle = document.getElementById('idn-detail-toggle');
+  detailToggle.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-level]');
+    if (!btn) return;
+    detailLevel = btn.dataset.level;
+    detailToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  });
+
+  /* ============ API key ============ */
+  const apiKeyInput = document.getElementById('idn-apikey');
+  const apiKeySaveBtn = document.getElementById('idn-apikey-save');
+  const apiKeyStatus = document.getElementById('idn-apikey-status');
+  let inMemoryKey = '';
+  try {
+    const stored = localStorage.getItem('idn_api_key');
+    if (stored) { apiKeyInput.value = stored; inMemoryKey = stored; apiKeyStatus.textContent = 'Key loaded from this browser.'; }
+  } catch (e) {}
+  apiKeySaveBtn.addEventListener('click', () => {
+    const val = apiKeyInput.value.trim();
+    inMemoryKey = val;
+    try { localStorage.setItem('idn_api_key', val); apiKeyStatus.textContent = val ? 'Key saved in this browser.' : 'Key cleared.'; }
+    catch (e) { apiKeyStatus.textContent = val ? 'Key set for this session (not persisted).' : 'Key cleared.'; }
+  });
+
+  /* ============ Timer / loading ============ */
+  let timerInterval = null;
+  function startTimer() { const start = Date.now(); timerInterval = setInterval(() => { timerBox.textContent = ((Date.now() - start) / 1000).toFixed(1) + 's'; }, 100); }
+  function stopTimer() { clearInterval(timerInterval); }
+  function setLoading(loading) { generateBtn.disabled = loading; generateBtn.innerHTML = loading ? '<span class="idn-spin"></span>Generating…' : 'Generate'; }
+  function showError(msg) { errorBox.style.display = 'block'; errorBox.textContent = msg; }
+  function clearError() { errorBox.style.display = 'none'; errorBox.textContent = ''; }
+
+  /* ============ Tabs ============ */
+  document.getElementById('idn-tabs').addEventListener('click', e => {
+    const btn = e.target.closest('.idn-tab');
+    if (!btn) return;
+    activeTab = btn.dataset.tab;
+    document.querySelectorAll('.idn-tab').forEach(t => t.classList.toggle('active', t === btn));
+    document.getElementById('idn-tab-clinical').classList.toggle('active', activeTab === 'clinical');
+    document.getElementById('idn-tab-handout').classList.toggle('active', activeTab === 'handout');
+    document.getElementById('idn-tab-billing').classList.toggle('active', activeTab === 'billing');
+  });
+
+  /* ============ CPT suggestion logic (reference only — not certified coding) ============ */
+  function locationGroup(site) {
+    const s = (site || '').toLowerCase();
+    if (/face|ear|eyelid|nose|lip|mucous/.test(s)) return 'C';
+    if (/scalp|neck|hand|finger|foot|toe|genital/.test(s)) return 'B';
+    return 'A';
+  }
+  function sizeTierIndex(sizeCm) {
+    const s = parseFloat(sizeCm);
+    if (isNaN(s)) return -1;
+    if (s <= 0.5) return 0;
+    if (s <= 1.0) return 1;
+    if (s <= 2.0) return 2;
+    if (s <= 3.0) return 3;
+    if (s <= 4.0) return 4;
+    return 5;
+  }
+  const BENIGN_EXCISION = { A: [11400,11401,11402,11403,11404,11406], B: [11420,11421,11422,11423,11424,11426], C: [11440,11441,11442,11443,11444,11446] };
+  const MALIGNANT_EXCISION = { A: [11600,11601,11602,11603,11604,11606], B: [11620,11621,11622,11623,11624,11626], C: [11640,11641,11642,11643,11644,11646] };
+  const MALIGNANT_DESTRUCTION = { A: [17260,17261,17262,17263,17264,17266], B: [17270,17271,17272,17273,17274,17276], C: [17280,17281,17282,17283,17284,17286] };
+  const SHAVE_TIERS = { A: [11300,11301,11302,11303], B: [11305,11306,11307,11308], C: [11310,11311,11312,11313] };
+
+  function shaveTierIndex(sizeCm) {
+    const s = parseFloat(sizeCm);
+    if (isNaN(s)) return -1;
+    if (s <= 0.5) return 0;
+    if (s <= 1.0) return 1;
+    if (s <= 2.0) return 2;
+    return 3;
+  }
+
+  function suggestCPT(proc) {
+    const group = locationGroup(proc.site);
+    switch (proc.type) {
+      case 'Shave biopsy': {
+        const t = shaveTierIndex(proc.sizeCm);
+        if (t === -1) return { code: SHAVE_TIERS[group][0] + '–' + SHAVE_TIERS[group][3], note: 'Enter lesion size for an exact tier.' };
+        return { code: String(SHAVE_TIERS[group][t]), note: 'Shave removal, ' + (group === 'A' ? 'trunk/arms/legs' : group === 'B' ? 'scalp/neck/hands/feet/genitalia' : 'face/ears/eyelids/nose/lips') + '.' };
+      }
+      case 'Punch biopsy':
+        return { code: '11104 (+11105 each additional)', note: 'Punch biopsy of skin, single lesion; add-on code for each additional.' };
+      case 'Excisional biopsy':
+        return { code: '11106 (+11107 each additional)', note: 'Incisional/excisional biopsy of skin, single lesion; add-on code for each additional.' };
+      case 'Excision (lesion removal)': {
+        const t = sizeTierIndex(proc.sizeCm);
+        const table = proc.malignant ? MALIGNANT_EXCISION : BENIGN_EXCISION;
+        if (t === -1) return { code: table[group][0] + '–' + table[group][5], note: 'Enter lesion size (excised diameter incl. margins) for an exact code.' };
+        return { code: String(table[group][t]), note: (proc.malignant ? 'Malignant' : 'Benign') + ' excision, ' + (group === 'A' ? 'trunk/arms/legs' : group === 'B' ? 'scalp/neck/hands/feet/genitalia' : 'face/ears/eyelids/nose/lips') + '.' };
+      }
+      case 'Cryotherapy':
+        return { code: '17000 (+17003 per addl. lesion, 2–14; 17004 if 15+)', note: 'Destruction of premalignant lesions (e.g. actinic keratosis) by cryotherapy.' };
+      case 'Electrodesiccation and curettage (ED&C)': {
+        if (proc.malignant) {
+          const t = sizeTierIndex(proc.sizeCm);
+          if (t === -1) return { code: MALIGNANT_DESTRUCTION[group][0] + '–' + MALIGNANT_DESTRUCTION[group][5], note: 'Enter lesion size for an exact code.' };
+          return { code: String(MALIGNANT_DESTRUCTION[group][t]), note: 'Malignant lesion destruction, ' + (group === 'A' ? 'trunk/arms/legs' : group === 'B' ? 'scalp/neck/hands/feet/genitalia' : 'face/ears/eyelids/nose/lips') + '.' };
+        }
+        return { code: '17110 (up to 14 lesions) or 17111 (15+)', note: 'Destruction of benign/premalignant lesions other than skin tags, by lesion count.' };
+      }
+      case 'Mohs surgery':
+        return { code: '17311–17315 (stage-based)', note: 'Mohs coding depends on stage count and location — use your practice\u2019s Mohs-specific coding workflow rather than a single code.' };
+      case 'Skin tag removal':
+        return { code: '11200 (up to 15 lesions, +11201 per addl. 10)', note: 'Removal of skin tags, by lesion count rather than size.' };
+      default:
+        return { code: '—', note: 'No standard reference for this procedure type — check with your coder.' };
+    }
+  }
+
+  /* ============ Patient handout templates (static, no AI needed) ============ */
+  const HANDOUT_TEMPLATES = {
+    en: {
+      'Shave biopsy': 'Keep the bandage on and dry for 24 hours. After that, gently wash with soap and water once a day and apply a thin layer of petroleum jelly, then re-cover with a bandage until healed (usually 1–2 weeks). Watch for increasing redness, swelling, warmth, or pus, and call the office if these occur. Avoid picking at the scab.',
+      'Punch biopsy': 'Keep the area clean and dry for the first 24 hours. Gently wash daily with soap and water afterward and apply petroleum jelly with a fresh bandage. If stitches were placed, follow the instructions given for removal timing. Watch for signs of infection (increasing redness, swelling, drainage, fever) and call the office if these occur.',
+      'Excisional biopsy': 'Keep the area clean and dry for 24 hours, then gently wash daily and reapply petroleum jelly and a bandage. If stitches were placed, keep the follow-up appointment for removal. Avoid heavy lifting or stretching the area. Watch for signs of infection and call the office with any concerns.',
+      'Excision (lesion removal)': 'Keep the wound covered and dry for the first day. After that, clean gently once daily and apply petroleum jelly with a fresh bandage until healed. Avoid strenuous activity that stretches the area while it heals. Contact the office if you notice increasing redness, swelling, drainage, or fever.',
+      'Cryotherapy': 'The treated spot may blister, scab, or darken over the next 1–2 weeks — this is expected. Keep it clean, avoid picking at it, and apply petroleum jelly if it feels dry or irritated. Contact the office if you see signs of infection or the area is not healing as expected.',
+      'Electrodesiccation and curettage (ED&C)': 'The treated area will scab over the next 1–3 weeks as it heals. Clean gently once daily and apply petroleum jelly with a bandage. Avoid picking at the scab. Contact the office if you notice increasing redness, swelling, drainage, or fever.',
+      'Mohs surgery': 'Follow the specific wound care instructions provided by your Mohs surgeon, as these vary by repair type. In general: keep the dressing clean and dry as instructed, avoid strenuous activity, and attend your follow-up appointment. Contact the office right away for excessive bleeding, spreading redness, or fever.',
+      'Skin tag removal': 'The treated area may scab lightly and should heal within about a week. Keep it clean and dry, and avoid picking at any scabbing. Contact the office if you notice increasing redness, swelling, or drainage.',
+      'Other': 'Follow any specific instructions given to you at your visit. In general, keep the area clean and dry, avoid picking at scabs, and contact the office if you notice increasing redness, swelling, drainage, or fever.'
+    },
+    es: {
+      'Shave biopsy': 'Mantenga el vendaje puesto y seco durante 24 horas. Después, lave suavemente con agua y jabón una vez al día y aplique una capa fina de vaselina, luego cubra de nuevo con un vendaje hasta que sane (por lo general 1–2 semanas). Esté atento a enrojecimiento, hinchazón, calor o pus, y llame al consultorio si esto ocurre. Evite tocar o rascar la costra.',
+      'Punch biopsy': 'Mantenga el área limpia y seca durante las primeras 24 horas. Después, lave suavemente cada día con agua y jabón y aplique vaselina con un vendaje nuevo. Si le colocaron puntos, siga las instrucciones para su retiro. Esté atento a signos de infección (enrojecimiento creciente, hinchazón, secreción, fiebre) y llame al consultorio si ocurren.',
+      'Excisional biopsy': 'Mantenga el área limpia y seca durante 24 horas, luego lave suavemente cada día y vuelva a aplicar vaselina y un vendaje. Si le colocaron puntos, asista a la cita de seguimiento para su retiro. Evite levantar peso o estirar el área. Llame al consultorio si tiene alguna inquietud.',
+      'Excision (lesion removal)': 'Mantenga la herida cubierta y seca el primer día. Después, limpie suavemente una vez al día y aplique vaselina con un vendaje nuevo hasta que sane. Evite actividades intensas que estiren el área mientras sana. Contacte al consultorio si nota enrojecimiento, hinchazón, secreción o fiebre.',
+      'Cryotherapy': 'El área tratada puede formar una ampolla, costra u oscurecerse durante las próximas 1–2 semanas — esto es normal. Manténgala limpia, evite tocarla, y aplique vaselina si se siente seca o irritada. Contacte al consultorio si ve signos de infección o si no sana como se espera.',
+      'Electrodesiccation and curettage (ED&C)': 'El área tratada formará una costra durante las próximas 1–3 semanas mientras sana. Limpie suavemente una vez al día y aplique vaselina con un vendaje. Evite tocar la costra. Contacte al consultorio si nota enrojecimiento, hinchazón, secreción o fiebre.',
+      'Mohs surgery': 'Siga las instrucciones específicas de cuidado de la herida que le dio su cirujano de Mohs, ya que varían según el tipo de reparación. En general: mantenga el vendaje limpio y seco como se le indicó, evite actividad intensa, y asista a su cita de seguimiento. Contacte al consultorio de inmediato si hay sangrado excesivo, enrojecimiento que se extiende, o fiebre.',
+      'Skin tag removal': 'El área tratada puede formar una costra leve y debe sanar en aproximadamente una semana. Manténgala limpia y seca, y evite tocar la costra. Contacte al consultorio si nota enrojecimiento, hinchazón o secreción creciente.',
+      'Other': 'Siga las instrucciones específicas que se le dieron en su visita. En general, mantenga el área limpia y seca, evite tocar las costras, y contacte al consultorio si nota enrojecimiento, hinchazón, secreción o fiebre creciente.'
+    }
+  };
+
+  document.getElementById('idn-tab-handout').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-lang]');
+    if (!btn) return;
+    handoutLang = btn.dataset.lang;
+    renderHandoutTab();
+  });
+
+  function renderHandoutTab() {
+    if (!lastGeneratedProcedures.length) { tabHandout.innerHTML = '<div class="idn-empty">Generate a note first to see the patient handout.</div>'; return; }
+    const t = HANDOUT_TEMPLATES[handoutLang];
+    let html = '<div class="idn-handout-controls"><div class="idn-handout-lang-toggle">' +
+      '<button data-lang="en"' + (handoutLang === 'en' ? ' class="active"' : '') + '>English</button>' +
+      '<button data-lang="es"' + (handoutLang === 'es' ? ' class="active"' : '') + '>Español</button>' +
+      '</div></div>';
+    lastGeneratedProcedures.forEach((item, i) => {
+      const type = item.meta.type || 'Other';
+      const text = t[type] || t['Other'];
+      html += '<div class="idn-handout-block"><h4>' + escapeHtml(item.meta.type || 'Procedure ' + (i + 1)) + (item.meta.site ? ' — ' + escapeHtml(item.meta.site) : '') + '</h4><p>' + escapeHtml(text) + '</p></div>';
+    });
+    tabHandout.innerHTML = html;
+  }
+
+  function renderBillingTab() {
+    if (!lastGeneratedProcedures.length) { tabBilling.innerHTML = '<div class="idn-empty">Generate a note first to see billing suggestions.</div>'; return; }
+    let html = '<div class="idn-billing-disclaimer">Reference suggestions only — not certified medical coding. Always verify with your billing/coding staff before submitting claims.</div>';
+    lastGeneratedProcedures.forEach((item, i) => {
+      const cpt = suggestCPT(item.meta);
+      html += '<div class="idn-billing-row"><span>' + escapeHtml(item.meta.type || 'Procedure ' + (i + 1)) + (item.meta.site ? ' — ' + escapeHtml(item.meta.site) : '') + '<br><span class="idn-hint">' + escapeHtml(cpt.note) + '</span></span><span class="idn-billing-code">' + escapeHtml(cpt.code) + '</span></div>';
+    });
+    tabBilling.innerHTML = html;
+  }
+
+  /* ============ Fallback offline structuring ============ */
+  function fallbackStructureFor(raw) {
+    const sentences = raw.replace(/\n+/g, '. ').split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+    const buckets = { indication: [], procedure: [], specimen: [], aftercare: [] };
+    const procedureWords = /\b(biops(y|ied)|excis|remov|shave|punch|cryo|freeze|curett|desiccat|anesthe|lidocaine|incision|suture|hemostasis)\b/i;
+    const specimenWords = /\b(specimen|path(ology)?|sent to lab|margins|frozen section)\b/i;
+    const aftercareWords = /\b(f\/u|follow[- ]?up|return|instructions|keep (it )?dry|bandage|ointment|antibiotic|dressing|check back|call if)\b/i;
+    sentences.forEach(s => {
+      if (aftercareWords.test(s)) buckets.aftercare.push(s);
+      else if (specimenWords.test(s)) buckets.specimen.push(s);
+      else if (procedureWords.test(s)) buckets.procedure.push(s);
+      else buckets.indication.push(s);
+    });
+    return {
+      indication: buckets.indication.join(' ') || 'Not documented',
+      procedure: buckets.procedure.join(' ') || 'Not documented',
+      specimen: buckets.specimen.join(' ') || 'Not documented',
+      aftercare: buckets.aftercare.join(' ') || 'Not documented'
+    };
+  }
+
+  /* ============ Rendering clinical note ============ */
+  function renderClinicalTab(isFallback) {
+    const name = nameField.value.trim();
+    const mrn = mrnField.value.trim();
+    const date = dateField.value.trim();
+    let html = '';
+    if (isFallback) html += '<div class="idn-draftflag">BASIC DRAFT — REVIEW CAREFULLY</div>';
+    if (name || mrn || date) {
+      html += '<div class="idn-proc-note-header" style="border:none; padding-bottom:0;"><strong>' + escapeHtml(name || 'Unnamed patient') + '</strong>' + (mrn ? ' · MRN ' + escapeHtml(mrn) : '') + (date ? ' · ' + escapeHtml(date) : '') + '</div>';
+    }
+    const order = [
+      { key: 'indication', tag: 'I', title: 'Indication' },
+      { key: 'procedure', tag: 'P', title: 'Procedure' },
+      { key: 'specimen', tag: 'S', title: 'Specimen / Pathology' },
+      { key: 'aftercare', tag: 'F', title: 'Aftercare & Follow-up' }
+    ];
+    let plain = (name || 'Unnamed patient') + (mrn ? '  MRN ' + mrn : '') + (date ? '  ' + date : '') + '\n\n';
+    let spoken = '';
+
+    lastGeneratedProcedures.forEach((item, i) => {
+      const meta = item.meta;
+      const note = item.note;
+      html += '<div class="idn-proc-note"><div class="idn-proc-note-header"><strong>' + escapeHtml(meta.type || 'Procedure ' + (i + 1)) + '</strong>' +
+        (meta.site ? ' · ' + escapeHtml(meta.site) : '') + (meta.sizeCm ? ' · ' + escapeHtml(meta.sizeCm) + ' cm' : '') + (meta.pathSent ? ' · Path: ' + escapeHtml(meta.pathSent) : '') + '</div>';
+      plain += '--- ' + (meta.type || 'Procedure ' + (i + 1)) + (meta.site ? ' (' + meta.site + ')' : '') + ' ---\n';
+      order.forEach(sec => {
+        const text = (note[sec.key] || '').trim();
+        if (!text) return;
+        html += '<div class="idn-section"><span class="idn-section-tag">' + sec.tag + '</span><span class="idn-section-title">' + sec.title + '</span><div class="idn-section-text">' + escapeHtml(text) + '</div></div>';
+        plain += sec.title.toUpperCase() + ':\n' + text + '\n\n';
+        spoken += sec.title + '. ' + text + '. ';
+      });
+      html += '</div>';
+    });
+
+    tabClinical.innerHTML = html;
+    window.__idnPlainNote = plain.trim();
+    window.__idnSpokenText = spoken.trim();
+    copyBtn.style.display = 'inline-block';
+    readBtn.style.display = 'inline-block';
+    downloadBtn.style.display = 'inline-block';
+
+    if (!isFallback) addToHistory(name, mrn, date, plain.trim());
+  }
+
+  /* ============ Generate ============ */
+  async function generate() {
+    const raw = input.value.trim();
+    if (!raw) { showError('Add or dictate some rough procedure notes first.'); return; }
+    const validProcedures = procedures.filter(p => p.type);
+    if (!validProcedures.length) { showError('Select at least one procedure type above.'); return; }
+    clearError();
+    setLoading(true);
+    startTimer();
+    tabClinical.innerHTML = '<div class="idn-empty">Drafting note…</div>';
+    copyBtn.style.display = 'none'; readBtn.style.display = 'none'; downloadBtn.style.display = 'none';
+    modeBanner.style.display = 'none';
+
+    const procListText = validProcedures.map((p, i) =>
+      'Procedure ' + (i + 1) + ': ' + p.type + (p.site ? ', site: ' + p.site : '') + (p.sizeCm ? ', size: ' + p.sizeCm + 'cm' : '') + (p.pathSent ? ', pathology sent: ' + p.pathSent : '')
+    ).join('\n');
+    const userContent = 'PROCEDURES PERFORMED THIS VISIT:\n' + procListText + '\n\nDICTATED/TYPED NOTES FOR THE VISIT:\n' + raw;
+
+    const briefPrompt = 'You are a dermatology clinical documentation assistant. You will be given a list of procedures performed during one visit and rough shorthand notes covering the whole visit. Divide the notes across the correct procedure using the metadata given (type/site/size/pathology) as anchors. For each procedure produce: indication (why it was done), procedure (technique/anesthesia/hemostasis), specimen (pathology handling), aftercare (wound care/follow-up). Keep it concise and clinical — short phrases, standard abbreviations, no filler. Never invent details not stated or clearly implied — use "Not documented" where nothing applies. Respond ONLY with a JSON object: {"procedures": [{"index": 1, "indication": "...", "procedure": "...", "specimen": "...", "aftercare": "..."}, ...]} with one entry per procedure listed, in the same order. No markdown, no commentary outside the JSON. Never include patient name or MRN.';
+
+    const detailedPrompt = 'You are an experienced dermatology clinical documentation assistant. You will be given a list of procedures performed during one visit and rough shorthand notes covering the whole visit. Divide the notes across the correct procedure using the metadata given (type/site/size/pathology) as anchors. For each procedure produce a fuller note: indication (presenting concern and why this procedure was chosen), procedure (full technique detail as supported by input), specimen (pathology handling and tracking), aftercare (clearly broken-out wound care instructions and follow-up timing). Keep it tight — no padding or repetition. Never invent details not stated or clearly implied — use "Not documented" where nothing applies. Respond ONLY with a JSON object: {"procedures": [{"index": 1, "indication": "...", "procedure": "...", "specimen": "...", "aftercare": "..."}, ...]} with one entry per procedure listed, in the same order. No markdown, no commentary outside the JSON. Never include patient name or MRN.';
+
+    const systemPrompt = detailLevel === 'detailed' ? detailedPrompt : briefPrompt;
+    const keyToUse = (inMemoryKey || apiKeyInput.value.trim());
+
+    try {
+      if (!keyToUse) throw new Error('No API key entered');
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': keyToUse, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: (detailLevel === 'detailed' ? 700 : 450) * validProcedures.length + 300,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userContent }]
+        })
+      });
+      if (!response.ok) { const errText = await response.text().catch(() => ''); throw new Error('AI service returned ' + response.status + (errText ? ': ' + errText.slice(0, 150) : '')); }
+      const data = await response.json();
+      const textBlock = (data.content || []).find(b => b.type === 'text');
+      if (!textBlock) throw new Error('No response text received.');
+      const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      const notesArr = parsed.procedures || [];
+      lastGeneratedProcedures = validProcedures.map((p, i) => ({ meta: p, note: notesArr[i] || {} }));
+      renderClinicalTab(false);
+      renderHandoutTab();
+      renderBillingTab();
+      offerTrackerEntries(validProcedures, { date: dateField.value.trim() });
+      switchToView('note');
+    } catch (err) {
+      console.warn('AI generation unavailable, using offline fallback:', err.message);
+      modeBanner.style.display = 'block';
+      modeBanner.textContent = keyToUse
+        ? ('AI drafting failed (' + err.message + '), so this used a basic offline keyword-sort instead. Review closely.')
+        : 'No API key entered, so this used a basic offline keyword-sort instead of AI. Add your Anthropic API key above for the smarter version.';
+      lastGeneratedProcedures = validProcedures.map(p => ({ meta: p, note: fallbackStructureFor(raw) }));
+      renderClinicalTab(true);
+      renderHandoutTab();
+      renderBillingTab();
+      switchToView('note');
+    } finally {
+      setLoading(false);
+      stopTimer();
+    }
+  }
+
+  generateBtn.addEventListener('click', generate);
+  clearBtn.addEventListener('click', () => { input.value = ''; clearError(); timerBox.textContent = ''; modeBanner.style.display = 'none'; });
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.__idnPlainNote || '').then(() => { copyBtn.textContent = 'Copied'; setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1400); });
+  });
+  downloadBtn.addEventListener('click', () => {
+    if (!window.__idnPlainNote) return;
+    const name = nameField.value.trim().replace(/[^a-z0-9]/gi, '_') || 'note';
+    const blob = new Blob([window.__idnPlainNote], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'IDEAL-Note_' + name + '.txt'; a.click();
+    URL.revokeObjectURL(url);
+  });
+  readBtn.addEventListener('click', () => {
+    if (!window.__idnSpokenText) return;
+    if (!('speechSynthesis' in window)) { showError('Text-to-speech isn\u2019t supported in this browser.'); return; }
+    if (readBtn.textContent === 'Stop') { window.speechSynthesis.cancel(); readBtn.textContent = 'Read aloud'; return; }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(window.__idnSpokenText);
+    utterance.rate = 0.95;
+    utterance.onend = () => { readBtn.textContent = 'Read aloud'; };
+    readBtn.textContent = 'Stop';
+    window.speechSynthesis.speak(utterance);
+  });
+
+  /* ============ History ============ */
+  const historyWrap = document.getElementById('idn-history-wrap');
+  const historyList = document.getElementById('idn-history-list');
+  function addToHistory(name, mrn, date, text) {
+    noteHistory.unshift({ name, mrn, date, text, time: new Date() });
+    noteHistory = noteHistory.slice(0, 8);
+    renderHistoryList();
+  }
+  function renderHistoryList() {
+    if (!noteHistory.length) { historyWrap.style.display = 'none'; return; }
+    historyWrap.style.display = 'block';
+    historyList.innerHTML = noteHistory.map((item, i) => {
+      const label = item.name || 'Unnamed patient';
+      const t = item.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return '<div class="idn-history-item" data-idx="' + i + '"><span>' + escapeHtml(label) + (item.mrn ? ' · MRN ' + escapeHtml(item.mrn) : '') + '</span><span class="idn-history-time">' + t + '</span></div>';
+    }).join('');
+    historyList.querySelectorAll('.idn-history-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const item = noteHistory[parseInt(el.dataset.idx, 10)];
+        window.__idnPlainNote = item.text;
+        tabClinical.innerHTML = '<div class="idn-section-text" style="margin-left:0; white-space:pre-wrap;">' + escapeHtml(item.text) + '</div>';
+        copyBtn.style.display = 'inline-block'; readBtn.style.display = 'inline-block'; downloadBtn.style.display = 'inline-block';
+        window.__idnSpokenText = item.text.replace(/\n+/g, '. ');
+      });
+    });
+  }
+
+  /* ============ Pathology tracker ============ */
+  const trackerListEl = document.getElementById('idn-tracker-list');
+  const trackerClearBtn = document.getElementById('idn-tracker-clear');
+
+  function loadTracker() {
+    try { return JSON.parse(localStorage.getItem('idn_path_tracker') || '[]'); } catch (e) { return []; }
+  }
+  function saveTracker(list) {
+    try { localStorage.setItem('idn_path_tracker', JSON.stringify(list)); } catch (e) {}
+  }
+
+  function offerTrackerEntries(validProcedures, opts) {
+    const visitDate = (opts && opts.date) || '';
+    const pending = validProcedures.filter(p => p.pathSent === 'Yes');
+    if (!pending.length) return;
+    const list = loadTracker();
+    pending.forEach(p => {
+      const expected = new Date();
+      expected.setDate(expected.getDate() + 10);
+      list.push({
+        id: Date.now() + Math.random(),
+        name: nameField.value.trim(),
+        mrn: mrnField.value.trim(),
+        type: p.type,
+        site: p.site,
+        visitDate: visitDate,
+        expectedDate: expected.toISOString().slice(0, 10),
+        status: 'pending'
+      });
+    });
+    saveTracker(list);
+    renderTracker();
+  }
+
+  function renderTracker() {
+    const list = loadTracker().filter(item => item.status !== 'resulted');
+    if (!list.length) { trackerListEl.innerHTML = '<div class="idn-tracker-empty">No pending pathology results.</div>'; return; }
+    const today = new Date().toISOString().slice(0, 10);
+    trackerListEl.innerHTML = list.map(item => {
+      const overdue = item.expectedDate && item.expectedDate < today;
+      return '<div class="idn-tracker-row" data-id="' + item.id + '">' +
+        '<span>' + escapeHtml(item.name || 'Unnamed') + (item.mrn ? ' · MRN ' + escapeHtml(item.mrn) : '') + '</span>' +
+        '<span>' + escapeHtml(item.type || '') + (item.site ? ' — ' + escapeHtml(item.site) : '') + '</span>' +
+        '<span>Sent: ' + escapeHtml(item.visitDate || '—') + '</span>' +
+        '<span class="' + (overdue ? 'idn-tracker-overdue' : '') + '">' + (overdue ? 'Overdue — ' : 'Expected ') + escapeHtml(item.expectedDate) + '</span>' +
+        '<button class="idn-btn idn-btn-ghost idn-btn-sm idn-tracker-resulted" data-id="' + item.id + '">Mark resulted</button>' +
+      '</div>';
+    }).join('');
+    trackerListEl.querySelectorAll('.idn-tracker-resulted').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseFloat(btn.dataset.id);
+        const list = loadTracker();
+        const item = list.find(i => i.id === id);
+        if (item) item.status = 'resulted';
+        saveTracker(list);
+        renderTracker();
+      });
+    });
+  }
+  trackerClearBtn.addEventListener('click', () => { saveTracker([]); renderTracker(); });
+  renderTracker();
+
+  /* ============ Voice dictation ============ */
+  const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let isRecording = false;
+  let baseTextBeforeDictation = '';
+
+  if (!SpeechRecognitionImpl) {
+    micBtn.disabled = true;
+    micSupport.textContent = 'Dictation needs Chrome or Edge — not supported in this browser.';
+  } else {
+    recognition = new SpeechRecognitionImpl();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    recognition.onresult = (event) => {
+      let finalTranscript = '', interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += transcript + ' '; else interimTranscript += transcript;
+      }
+      input.value = (baseTextBeforeDictation + finalTranscript).trim() + (interimTranscript ? ' ' + interimTranscript : '');
+      if (finalTranscript) baseTextBeforeDictation = (baseTextBeforeDictation + finalTranscript);
+    };
+    recognition.onerror = (event) => { showError('Dictation error: ' + event.error + '. Check mic permission.'); stopDictation(); };
+    recognition.onend = () => { if (isRecording) { try { recognition.start(); } catch (e) { stopDictation(); } } };
+  }
+  function startDictation() {
+    baseTextBeforeDictation = input.value ? input.value.trim() + ' ' : '';
+    isRecording = true; micBtn.classList.add('is-recording'); micLabel.textContent = 'Listening…'; clearError();
+    try { recognition.start(); } catch (e) {}
+  }
+  function stopDictation() {
+    isRecording = false; micBtn.classList.remove('is-recording'); micLabel.textContent = 'Dictate';
+    if (recognition) { try { recognition.stop(); } catch (e) {} }
+  }
+  micBtn.addEventListener('click', () => { if (!SpeechRecognitionImpl) return; if (isRecording) stopDictation(); else startDictation(); });
+
+  /* ============ Top-level view switching ============ */
+  function switchToView(v) {
+    document.querySelectorAll('.idn-navtab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    ['visit','note','tracker'].forEach(k => {
+      const el = document.getElementById('idn-view-' + k);
+      if (el) el.classList.toggle('active', k === v);
+    });
+  }
+  document.querySelectorAll('.idn-navtab').forEach(btn => {
+    btn.addEventListener('click', () => switchToView(btn.dataset.view));
+  });
+
+  const settingsBtn = document.getElementById('idn-settings-open');
+  const settingsBackdrop = document.getElementById('idn-settings-backdrop');
+  const settingsClose = document.getElementById('idn-settings-close');
+  if (settingsBtn) settingsBtn.addEventListener('click', () => settingsBackdrop.classList.add('open'));
+  if (settingsClose) settingsClose.addEventListener('click', () => settingsBackdrop.classList.remove('open'));
+  if (settingsBackdrop) settingsBackdrop.addEventListener('click', e => { if (e.target === settingsBackdrop) settingsBackdrop.classList.remove('open'); });
+})();
+</script></body>
+</html>
